@@ -15,161 +15,262 @@
  */
 package com.squareup.javapoet;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Modifier;
-
 import static com.squareup.javapoet.Util.checkArgument;
 import static com.squareup.javapoet.Util.checkNotNull;
 import static com.squareup.javapoet.Util.checkState;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Modifier;
+
 /** A generated field declaration. */
-public final class FieldSpec {
-  public final TypeName type;
-  public final String name;
-  public final CodeBlock javadoc;
-  public final List<AnnotationSpec> annotations;
-  public final Set<Modifier> modifiers;
-  public final CodeBlock initializer;
+public final class FieldSpec extends Initializable<FieldSpec> {
 
-  private FieldSpec(Builder builder) {
-    this.type = checkNotNull(builder.type, "type == null");
-    this.name = checkNotNull(builder.name, "name == null");
-    this.javadoc = builder.javadoc.build();
-    this.annotations = Util.immutableList(builder.annotations);
-    this.modifiers = Util.immutableSet(builder.modifiers);
-    this.initializer = (builder.initializer == null)
-        ? CodeBlock.builder().build()
-        : builder.initializer;
-  }
+	transient public TypeName type;
+	transient public String name;
+	transient public CodeBlock javadoc;
+	transient public List<AnnotationSpec> annotations;
+	transient public Set<Modifier> modifiers;
+	transient public CodeBlock initializer;
 
-  public boolean hasModifier(Modifier modifier) {
-    return modifiers.contains(modifier);
-  }
+	private FieldSpec(Builder builder) {
+		initialize(builder);
+	}
 
-  void emit(CodeWriter codeWriter, Set<Modifier> implicitModifiers) throws IOException {
-    codeWriter.emitJavadoc(javadoc);
-    codeWriter.emitAnnotations(annotations, false);
-    codeWriter.emitModifiers(modifiers, implicitModifiers);
-    codeWriter.emit("$T $L", type, name);
-    if (!initializer.isEmpty()) {
-      codeWriter.emit(" = ");
-      codeWriter.emit(initializer);
-    }
-    codeWriter.emit(";\n");
-  }
+	@Override
+	public void initialize(Initializer<FieldSpec> aBuilder) {
+		Builder builder = (Builder) aBuilder;
+		this.type = checkNotNull(builder.type, "type == null");
+		this.name = checkNotNull(builder.name, "name == null");
+		this.javadoc = builder.javadoc.build();
+		this.annotations = Util.immutableList(builder.annotations);
+		this.modifiers = Util.immutableSet(builder.modifiers);
+		this.initializer = (builder.initializer == null)
+				? CodeBlock.builder().build()
+						: builder.initializer;
+				super.initialize(builder);
+				//				hashCode = null;
+	}
 
-  @Override public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null) return false;
-    if (getClass() != o.getClass()) return false;
-    return toString().equals(o.toString());
-  }
+	public boolean hasModifier(Modifier modifier) {
+		ensureInitialized();
+		return modifiers.contains(modifier);
+	}
 
-  @Override public int hashCode() {
-    return toString().hashCode();
-  }
+	void emit(CodeWriter codeWriter, Set<Modifier> implicitModifiers) throws IOException {
+		ensureInitialized();
+		codeWriter.emitJavadoc(javadoc);
+		codeWriter.emitAnnotations(annotations, false);
+		codeWriter.emitModifiers(modifiers, implicitModifiers);
+		codeWriter.emit("$T $L", type, name);
+		if (!initializer.isEmpty()) {
+			codeWriter.emit(" = ");
+			codeWriter.emit(initializer);
+		}
+		codeWriter.emit(";\n");
+	}
 
-  @Override public String toString() {
-    StringWriter out = new StringWriter();
-    try {
-      CodeWriter codeWriter = new CodeWriter(out);
-      emit(codeWriter, Collections.<Modifier>emptySet());
-      return out.toString();
-    } catch (IOException e) {
-      throw new AssertionError();
-    }
-  }
+	//	@Override public boolean equals(Object o) {
+	//		if (this == o) return true;
+	//		if (o == null) return false;
+	//		if (getClass() != o.getClass()) return false;
+	//		ensureInitialized();
+	//		return toString().equals(((FieldSpec)o).toString());
+	//	}
+	//
+	//	Integer hashCode = null;
+	//
+	//	@Override
+	//	public int hashCode() {
+	//		ensureInitialized();
+	//		if (hashCode == null) {
+	//			hashCode = toBuilder().hashCode();
+	//		}
+	//		return hashCode;
+	//	}
 
-  public static Builder builder(TypeName type, String name, Modifier... modifiers) {
-    checkNotNull(type, "type == null");
-    checkArgument(SourceVersion.isName(name), "not a valid name: %s", name);
-    return new Builder(type, name)
-        .addModifiers(modifiers);
-  }
+	@Override public String toString() {
+		StringWriter out = new StringWriter();
+		try {
+			CodeWriter codeWriter = new CodeWriter(out);
+			emit(codeWriter, Collections.<Modifier>emptySet());
+			return out.toString();
+		} catch (IOException e) {
+			throw new AssertionError();
+		}
+	}
 
-  public static Builder builder(Type type, String name, Modifier... modifiers) {
-    return builder(TypeName.get(type), name, modifiers);
-  }
+	public static Builder builder(TypeName type, String name, Modifier... modifiers) {
+		checkNotNull(type, "type == null");
+		checkArgument(SourceVersion.isName(name), "not a valid name: %s", name);
+		return new Builder(type, name)
+				.addModifiers(modifiers);
+	}
 
-  public Builder toBuilder() {
-    Builder builder = new Builder(type, name);
-    builder.javadoc.add(javadoc);
-    builder.annotations.addAll(annotations);
-    builder.modifiers.addAll(modifiers);
-    builder.initializer = initializer.isEmpty() ? null : initializer;
-    return builder;
-  }
+	public static Builder builder(Type type, String name, Modifier... modifiers) {
+		return builder(TypeName.get(type), name, modifiers);
+	}
 
-  public static final class Builder {
-    private final TypeName type;
-    private final String name;
+	public Builder toBuilder() {
+		Builder builder = new Builder(type, name);
+		builder.javadoc.add(javadoc);
+		builder.annotations.addAll(annotations);
+		builder.modifiers.addAll(modifiers);
+		builder.initializer = initializer.isEmpty() ? null : initializer;
+		return builder;
+	}
 
-    private final CodeBlock.Builder javadoc = CodeBlock.builder();
-    private final List<AnnotationSpec> annotations = new ArrayList<>();
-    private final List<Modifier> modifiers = new ArrayList<>();
-    private CodeBlock initializer = null;
+	public static final class Builder implements Initializer<FieldSpec> {
+		private final TypeName type;
+		private final String name;
 
-    private Builder(TypeName type, String name) {
-      this.type = type;
-      this.name = name;
-    }
+		private final CodeBlock.Builder javadoc = CodeBlock.builder();
+		private final Set<AnnotationSpec> annotations = new HashSet<>();
+		private final Set<Modifier> modifiers = new HashSet<>();
+		private CodeBlock initializer = null;
 
-    public Builder addJavadoc(String format, Object... args) {
-      javadoc.add(format, args);
-      return this;
-    }
+		private Builder(TypeName type, String name) {
+			this.type = type;
+			this.name = name;
+		}
 
-    public Builder addJavadoc(CodeBlock block) {
-      javadoc.add(block);
-      return this;
-    }
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((annotations == null) ? 0 : annotations.hashCode());
+			result = prime * result + ((initializer == null) ? 0 : initializer.hashCode());
+			result = prime * result + ((javadoc == null) ? 0 : javadoc.hashCode());
+			result = prime * result + ((modifiers == null) ? 0 : modifiers.hashCode());
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			result = prime * result + ((type == null) ? 0 : type.hashCode());
+			return result;
+		}
 
-    public Builder addAnnotations(Iterable<AnnotationSpec> annotationSpecs) {
-      checkArgument(annotationSpecs != null, "annotationSpecs == null");
-      for (AnnotationSpec annotationSpec : annotationSpecs) {
-        this.annotations.add(annotationSpec);
-      }
-      return this;
-    }
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof Builder)) {
+				return false;
+			}
+			Builder other = (Builder) obj;
+			if (annotations == null) {
+				if (other.annotations != null) {
+					return false;
+				}
+			} else if (!annotations.equals(other.annotations)) {
+				return false;
+			}
+			if (initializer == null) {
+				if (other.initializer != null) {
+					return false;
+				}
+			} else if (!initializer.equals(other.initializer)) {
+				return false;
+			}
+			if (javadoc == null) {
+				if (other.javadoc != null) {
+					return false;
+				}
+			} else if (!javadoc.equals(other.javadoc)) {
+				return false;
+			}
+			if (modifiers == null) {
+				if (other.modifiers != null) {
+					return false;
+				}
+			} else if (!modifiers.equals(other.modifiers)) {
+				return false;
+			}
+			if (name == null) {
+				if (other.name != null) {
+					return false;
+				}
+			} else if (!name.equals(other.name)) {
+				return false;
+			}
+			if (type == null) {
+				if (other.type != null) {
+					return false;
+				}
+			} else if (!type.equals(other.type)) {
+				return false;
+			}
+			return true;
+		}
 
-    public Builder addAnnotation(AnnotationSpec annotationSpec) {
-      this.annotations.add(annotationSpec);
-      return this;
-    }
+		public Builder addJavadoc(String format, Object... args) {
+			javadoc.add(format, args);
+			return this;
+		}
 
-    public Builder addAnnotation(ClassName annotation) {
-      this.annotations.add(AnnotationSpec.builder(annotation).build());
-      return this;
-    }
+		public Builder addJavadoc(CodeBlock block) {
+			javadoc.add(block);
+			return this;
+		}
 
-    public Builder addAnnotation(Class<?> annotation) {
-      return addAnnotation(ClassName.get(annotation));
-    }
+		public Builder addAnnotations(Iterable<AnnotationSpec> annotationSpecs) {
+			checkArgument(annotationSpecs != null, "annotationSpecs == null");
+			for (AnnotationSpec annotationSpec : annotationSpecs) {
+				this.annotations.add(annotationSpec);
+			}
+			return this;
+		}
 
-    public Builder addModifiers(Modifier... modifiers) {
-      Collections.addAll(this.modifiers, modifiers);
-      return this;
-    }
+		public Builder addAnnotation(AnnotationSpec annotationSpec) {
+			this.annotations.add(annotationSpec);
+			return this;
+		}
 
-    public Builder initializer(String format, Object... args) {
-      return initializer(CodeBlock.of(format, args));
-    }
+		public Builder addAnnotation(ClassName annotation) {
+			this.annotations.add(AnnotationSpec.builder(annotation).build());
+			return this;
+		}
 
-    public Builder initializer(CodeBlock codeBlock) {
-      checkState(this.initializer == null, "initializer was already set");
-      this.initializer = checkNotNull(codeBlock, "codeBlock == null");
-      return this;
-    }
+		public Builder addAnnotation(Class<?> annotation) {
+			return addAnnotation(ClassName.get(annotation));
+		}
 
-    public FieldSpec build() {
-      return new FieldSpec(this);
-    }
-  }
+		public Builder addModifiers(Modifier... modifiers) {
+			Collections.addAll(this.modifiers, modifiers);
+			return this;
+		}
+
+		public Builder initializer(String format, Object... args) {
+			return initializer(CodeBlock.of(format, args));
+		}
+
+		public Builder initializer(CodeBlock codeBlock) {
+			checkState(this.initializer == null, "initializer was already set");
+			this.initializer = checkNotNull(codeBlock, "codeBlock == null");
+			return this;
+		}
+
+		public FieldSpec build() {
+			return new FieldSpec(this);
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+	}
 }

@@ -55,12 +55,12 @@ public final class JavaFile {
     }
   };
 
-  public final CodeBlock fileComment;
-  public final String packageName;
-  public final TypeSpec typeSpec;
-  public final boolean skipJavaLangImports;
-  private final Set<String> staticImports;
-  private final String indent;
+  transient public final CodeBlock fileComment;
+  transient public final String packageName;
+  transient public final TypeSpec typeSpec;
+  transient public final boolean skipJavaLangImports;
+  transient private final Set<String> staticImports;
+  transient private final String indent;
 
   private JavaFile(Builder builder) {
     this.fileComment = builder.fileComment.build();
@@ -226,7 +226,79 @@ public final class JavaFile {
       this.typeSpec = typeSpec;
     }
 
-    public Builder addFileComment(String format, Object... args) {
+    /* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((fileComment == null) ? 0 : fileComment.hashCode());
+		result = prime * result + ((indent == null) ? 0 : indent.hashCode());
+		result = prime * result + ((packageName == null) ? 0 : packageName.hashCode());
+		result = prime * result + (skipJavaLangImports ? 1231 : 1237);
+		result = prime * result + ((staticImports == null) ? 0 : staticImports.hashCode());
+		result = prime * result + ((typeSpec == null) ? 0 : typeSpec.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Builder)) {
+			return false;
+		}
+		Builder other = (Builder) obj;
+		if (fileComment == null) {
+			if (other.fileComment != null) {
+				return false;
+			}
+		} else if (!fileComment.equals(other.fileComment)) {
+			return false;
+		}
+		if (indent == null) {
+			if (other.indent != null) {
+				return false;
+			}
+		} else if (!indent.equals(other.indent)) {
+			return false;
+		}
+		if (packageName == null) {
+			if (other.packageName != null) {
+				return false;
+			}
+		} else if (!packageName.equals(other.packageName)) {
+			return false;
+		}
+		if (skipJavaLangImports != other.skipJavaLangImports) {
+			return false;
+		}
+		if (staticImports == null) {
+			if (other.staticImports != null) {
+				return false;
+			}
+		} else if (!staticImports.equals(other.staticImports)) {
+			return false;
+		}
+		if (typeSpec == null) {
+			if (other.typeSpec != null) {
+				return false;
+			}
+		} else if (!typeSpec.equals(other.typeSpec)) {
+			return false;
+		}
+		return true;
+	}
+
+	public Builder addFileComment(String format, Object... args) {
       this.fileComment.add(format, args);
       return this;
     }

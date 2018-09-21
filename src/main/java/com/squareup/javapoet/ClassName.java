@@ -36,7 +36,8 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
   public static final ClassName OBJECT = ClassName.get(Object.class);
 
   /** From top to bottom. This will be ["java.util", "Map", "Entry"] for {@link Map.Entry}. */
-  final List<String> names;
+  transient List<String> names;
+  List<String> mutableNames;
   final String canonicalName;
 
   private ClassName(List<String> names) {
@@ -48,23 +49,75 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
     for (int i = 1; i < names.size(); i++) {
       checkArgument(SourceVersion.isName(names.get(i)), "part '%s' is keyword", names.get(i));
     }
+    this.mutableNames = names;
     this.names = Util.immutableList(names);
     this.canonicalName = names.get(0).isEmpty()
         ? Util.join(".", names.subList(1, names.size()))
         : Util.join(".", names);
   }
 
+//  /* (non-Javadoc)
+// * @see java.lang.Object#hashCode()
+// */
+//@Override
+//public int hashCode() {
+//	final int prime = 31;
+//	int result = super.hashCode();
+//	result = prime * result + ((canonicalName == null) ? 0 : canonicalName.hashCode());
+//	result = prime * result + ((mutableNames == null) ? 0 : mutableNames.hashCode());
+//	return result;
+//}
+//
+///* (non-Javadoc)
+// * @see java.lang.Object#equals(java.lang.Object)
+// */
+//@Override
+//public boolean equals(Object obj) {
+//	if (this == obj) {
+//		return true;
+//	}
+//	if (!super.equals(obj)) {
+//		return false;
+//	}
+//	if (!(obj instanceof ClassName)) {
+//		return false;
+//	}
+//	ClassName other = (ClassName) obj;
+//	if (canonicalName == null) {
+//		if (other.canonicalName != null) {
+//			return false;
+//		}
+//	} else if (!canonicalName.equals(other.canonicalName)) {
+//		return false;
+//	}
+//	if (mutableNames == null) {
+//		if (other.mutableNames != null) {
+//			return false;
+//		}
+//	} else if (!mutableNames.equals(other.mutableNames)) {
+//		return false;
+//	}
+//	return true;
+//}
+
+private final List<String> getNames() {
+	  if (names == null) {
+		  names = Util.immutableList(mutableNames);
+	  }
+	  return names;
+  }
+
   @Override public ClassName annotated(List<AnnotationSpec> annotations) {
-    return new ClassName(names, concatAnnotations(annotations));
+    return new ClassName(getNames(), concatAnnotations(annotations));
   }
 
   @Override public TypeName withoutAnnotations() {
-    return new ClassName(names);
+    return new ClassName(getNames());
   }
 
   /** Returns the package name, like {@code "java.util"} for {@code Map.Entry}. */
   public String packageName() {
-    return names.get(0);
+    return getNames().get(0);
   }
 
   /**
@@ -72,8 +125,8 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
    * is not nested in another class.
    */
   public ClassName enclosingClassName() {
-    if (names.size() == 2) return null;
-    return new ClassName(names.subList(0, names.size() - 1));
+    if (getNames().size() == 2) return null;
+    return new ClassName(getNames().subList(0, getNames().size() - 1));
   }
 
   /**
@@ -81,17 +134,17 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
    * #enclosingClassName()} until the result's enclosing class is null.
    */
   public ClassName topLevelClassName() {
-    return new ClassName(names.subList(0, 2));
+    return new ClassName(getNames().subList(0, 2));
   }
 
   public String reflectionName() {
-    // trivial case: no nested names
-    if (names.size() == 2) {
+    // trivial case: no nested getNames()
+    if (getNames().size() == 2) {
       String packageName = packageName();
       if (packageName.isEmpty()) {
-        return names.get(1);
+        return getNames().get(1);
       }
-      return packageName + "." + names.get(1);
+      return packageName + "." + getNames().get(1);
     }
     // concat top level class name and nested names
     StringBuilder builder = new StringBuilder();
@@ -108,14 +161,14 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
    */
   public ClassName nestedClass(String name) {
     checkNotNull(name, "name == null");
-    List<String> result = new ArrayList<>(names.size() + 1);
-    result.addAll(names);
+    List<String> result = new ArrayList<>(getNames().size() + 1);
+    result.addAll(getNames());
     result.add(name);
     return new ClassName(result);
   }
 
   public List<String> simpleNames() {
-    return names.subList(1, names.size());
+    return getNames().subList(1, getNames().size());
   }
 
   /**
@@ -124,14 +177,14 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
    * it is equivalent to {@code get(packageName(), name)}.
    */
   public ClassName peerClass(String name) {
-    List<String> result = new ArrayList<>(names);
+    List<String> result = new ArrayList<>(getNames());
     result.set(result.size() - 1, name);
     return new ClassName(result);
   }
 
   /** Returns the simple name of this class, like {@code "Entry"} for {@link Map.Entry}. */
   public String simpleName() {
-    return names.get(names.size() - 1);
+    return getNames().get(getNames().size() - 1);
   }
 
   public static ClassName get(Class<?> clazz) {
