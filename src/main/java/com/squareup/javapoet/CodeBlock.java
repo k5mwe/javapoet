@@ -62,38 +62,48 @@ import static com.squareup.javapoet.Util.checkArgument;
  *   <li>{@code $]} ends a statement.
  * </ul>
  */
-public final class CodeBlock {
+public final class CodeBlock  extends Initializable<CodeBlock> {
   private static final Pattern NAMED_ARGUMENT =
       Pattern.compile("\\$(?<argumentName>[\\w_]+):(?<typeChar>[\\w]).*");
   private static final Pattern LOWERCASE = Pattern.compile("[a-z]+[\\w_]*");
 
   /** A heterogeneous list containing string literals and value placeholders. */
-  final List<String> formatParts;
-  final List<Object> args;
+  transient List<String> formatParts;
+  transient List<Object> args;
 
   private CodeBlock(Builder builder) {
+	initialize(builder);
     this.formatParts = Util.immutableList(builder.formatParts);
     this.args = Util.immutableList(builder.args);
   }
+  
+  public void initialize(Initializer<CodeBlock> aBuilder) {
+	Builder builder = (Builder) aBuilder;
+	this.formatParts = Util.immutableList(builder.formatParts);
+	this.args = Util.immutableList(builder.args);
+	super.initialize(builder);
+  }
 
   public boolean isEmpty() {
+	ensureInitialized();
     return formatParts.isEmpty();
   }
 
-  @Override public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null) return false;
-    if (getClass() != o.getClass()) return false;
-    return toString().equals(o.toString());
-  }
-
-  @Override public int hashCode() {
-    return toString().hashCode();
-  }
+//  @Override public boolean equals(Object o) {
+//    if (this == o) return true;
+//    if (o == null) return false;
+//    if (getClass() != o.getClass()) return false;
+//    return toString().equals(o.toString());
+//  }
+//
+//  @Override public int hashCode() {
+//    return toString().hashCode();
+//  }
 
   @Override public String toString() {
     StringBuilder out = new StringBuilder();
     try {
+      ensureInitialized();
       new CodeWriter(out).emit(this);
       return out.toString();
     } catch (IOException e) {
@@ -156,7 +166,7 @@ public final class CodeBlock {
     return builder;
   }
 
-  public static final class Builder {
+  public static final class Builder implements Initializer<CodeBlock> {
     final List<String> formatParts = new ArrayList<>();
     final List<Object> args = new ArrayList<>();
 
@@ -166,6 +176,51 @@ public final class CodeBlock {
     public boolean isEmpty() {
       return formatParts.isEmpty();
     }
+    
+    // FIXME: update these to match current fields
+    /* (non-Javadoc)
+ 	 * @see java.lang.Object#hashCode()
+ 	 */
+ 	@Override
+ 	public int hashCode() {
+ 	    final int prime = 31;
+ 	    int result = 1;
+ 	    result = prime * result + ((args == null || args.size() == 0) ? 0 : args.hashCode());
+ 	    result = prime * result + ((formatParts == null || formatParts.size() == 0) ? 0 : formatParts.hashCode());
+ 	    return result;
+ 	}
+ 	
+ 	/* (non-Javadoc)
+ 	 * @see java.lang.Object#equals(java.lang.Object)
+ 	 */
+ 	@Override
+ 	public boolean equals(Object obj) {
+ 	    if (this == obj) {
+ 	        return true;
+ 	    }
+ 	    if (obj == null) {
+ 	        return false;
+ 	    }
+ 	    if (!(obj instanceof Builder)) {
+ 	        return false;
+ 	    }
+ 	    Builder other = (Builder) obj;
+ 	    if (args == null) {
+ 	        if (other.args != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!args.equals(other.args)) {
+ 	        return false;
+ 	    }
+ 	    if (formatParts == null) {
+ 	        if (other.formatParts != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!formatParts.equals(other.formatParts)) {
+ 	        return false;
+ 	    }
+ 	    return true;
+ 	}
 
     /**
      * Adds code using named arguments.
@@ -466,5 +521,10 @@ public final class CodeBlock {
     CodeBlock join() {
       return builder.build();
     }
+ 	
+ 	@Override
+ 	public String getName() {
+ 	    return this.toString();
+ 	}
   }
 }

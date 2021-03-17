@@ -65,7 +65,7 @@ import javax.lang.model.util.SimpleTypeVisitor8;
  * {@code Set<Long>}, use the factory methods on {@link ArrayTypeName}, {@link
  * ParameterizedTypeName}, {@link TypeVariableName}, and {@link WildcardTypeName}.
  */
-public class TypeName {
+public class TypeName extends Initializable<TypeName> implements Initializer<TypeName> {
   public static final TypeName VOID = new TypeName("void");
   public static final TypeName BOOLEAN = new TypeName("boolean");
   public static final TypeName BYTE = new TypeName("byte");
@@ -89,7 +89,8 @@ public class TypeName {
 
   /** The name of this type if it is a keyword, or null. */
   private final String keyword;
-  public final List<AnnotationSpec> annotations;
+  transient final List<AnnotationSpec> annotations;
+  public List<AnnotationSpec> annotationList;
 
   /** Lazily-initialized toString of this type name. */
   private String cachedString;
@@ -99,35 +100,50 @@ public class TypeName {
   }
 
   private TypeName(String keyword, List<AnnotationSpec> annotations) {
-    this.keyword = keyword;
-    this.annotations = Util.immutableList(annotations);
+	this.annotationList = annotations;
+	this.annotations = Util.immutableList(annotationList);
+	super.initialize(this);
   }
 
   // Package-private constructor to prevent third-party subclasses.
   TypeName(List<AnnotationSpec> annotations) {
     this(null, annotations);
   }
+  
+  public void initialize(Initializer<TypeName> initializer) {
+	this.annotations = Util.immutableList(annotationList);
+	super.initialize(this);
+  }
+	
+  public String getName() {
+	return String.valueOf(keyword);
+  }
 
   public final TypeName annotated(AnnotationSpec... annotations) {
+	ensureInitialized();
     return annotated(Arrays.asList(annotations));
   }
 
   public TypeName annotated(List<AnnotationSpec> annotations) {
+	ensureInitialized();
     Util.checkNotNull(annotations, "annotations == null");
     return new TypeName(keyword, concatAnnotations(annotations));
   }
 
   public TypeName withoutAnnotations() {
+	ensureInitialized();
     return new TypeName(keyword);
   }
 
   protected final List<AnnotationSpec> concatAnnotations(List<AnnotationSpec> annotations) {
+	ensureInitialized();
     List<AnnotationSpec> allAnnotations = new ArrayList<>(this.annotations);
     allAnnotations.addAll(annotations);
     return allAnnotations;
   }
 
   public boolean isAnnotated() {
+	ensureInitialized();
     return !annotations.isEmpty();
   }
 
@@ -137,6 +153,10 @@ public class TypeName {
    */
   public boolean isPrimitive() {
     return keyword != null && this != VOID;
+  }  
+  
+  public boolean isArray() {
+      return arrayComponent(this) != null;
   }
 
   /**
@@ -192,16 +212,16 @@ public class TypeName {
     throw new UnsupportedOperationException("cannot unbox " + this);
   }
 
-  @Override public final boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null) return false;
-    if (getClass() != o.getClass()) return false;
-    return toString().equals(o.toString());
-  }
-
-  @Override public final int hashCode() {
-    return toString().hashCode();
-  }
+//  @Override public final boolean equals(Object o) {
+//    if (this == o) return true;
+//    if (o == null) return false;
+//    if (getClass() != o.getClass()) return false;
+//    return toString().equals(o.toString());
+//  }
+//
+//  @Override public final int hashCode() {
+//    return toString().hashCode();
+//  }
 
   @Override public final String toString() {
     String result = cachedString;
@@ -230,6 +250,7 @@ public class TypeName {
   }
 
   CodeWriter emitAnnotations(CodeWriter out) throws IOException {
+	ensureInitialized();
     for (AnnotationSpec annotation : annotations) {
       annotation.emit(out, true);
       out.emit(" ");

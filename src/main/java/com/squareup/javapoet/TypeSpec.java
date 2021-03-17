@@ -38,6 +38,8 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.squareup.javapoet.Util.checkArgument;
 import static com.squareup.javapoet.Util.checkNotNull;
@@ -45,27 +47,35 @@ import static com.squareup.javapoet.Util.checkState;
 import static com.squareup.javapoet.Util.requireExactlyOneOf;
 
 /** A generated class, interface, or enum declaration. */
-public final class TypeSpec {
-  public final Kind kind;
-  public final String name;
-  public final CodeBlock anonymousTypeArguments;
-  public final CodeBlock javadoc;
-  public final List<AnnotationSpec> annotations;
-  public final Set<Modifier> modifiers;
-  public final List<TypeVariableName> typeVariables;
-  public final TypeName superclass;
-  public final List<TypeName> superinterfaces;
-  public final Map<String, TypeSpec> enumConstants;
-  public final List<FieldSpec> fieldSpecs;
-  public final CodeBlock staticBlock;
-  public final CodeBlock initializerBlock;
-  public final List<MethodSpec> methodSpecs;
-  public final List<TypeSpec> typeSpecs;
-  final Set<String> nestedTypesSimpleNames;
-  public final List<Element> originatingElements;
-  public final Set<String> alwaysQualifiedNames;
+public final class TypeSpec extends Initializable<TypeSpec> { 	
+  private static final Logger LOGGER = LoggerFactory.getLogger(TypeSpec.class);
+  transient public final Kind kind;
+  transient public final String name;
+  transient public final CodeBlock anonymousTypeArguments;
+  transient public final CodeBlock javadoc;
+  transient public final List<AnnotationSpec> annotations;
+  transient public final Set<Modifier> modifiers;
+  transient public final List<TypeVariableName> typeVariables;
+  transient public final TypeName superclass;
+  transient public final List<TypeName> superinterfaces;
+  transient public final Map<String, TypeSpec> enumConstants;
+  transient public final List<FieldSpec> fieldSpecs;
+  transient public final CodeBlock staticBlock;
+  transient public final CodeBlock initializerBlock;
+  transient public final List<MethodSpec> methodSpecs;
+  transient public final List<TypeSpec> typeSpecs;
+  transient final Set<String> nestedTypesSimpleNames;
+  transient public final List<Element> originatingElements;
+  transient public final Set<String> alwaysQualifiedNames;
 
   private TypeSpec(Builder builder) {
+	initialize(builder);
+	LOGGER.debug("{} instantiated", name);
+  }
+  
+  @Override
+  public void initialize(Initializer<TypeSpec> aBuilder) {
+	Builder builder = (Builder) aBuilder;
     this.kind = builder.kind;
     this.name = builder.name;
     this.anonymousTypeArguments = builder.anonymousTypeArguments;
@@ -92,6 +102,7 @@ public final class TypeSpec {
     }
 
     this.originatingElements = Util.immutableList(originatingElementsMutable);
+    super.initialize(builder);
   }
 
   /**
@@ -121,6 +132,7 @@ public final class TypeSpec {
   }
 
   public boolean hasModifier(Modifier modifier) {
+	ensureInitialized();
     return modifiers.contains(modifier);
   }
 
@@ -185,6 +197,7 @@ public final class TypeSpec {
 
   void emit(CodeWriter codeWriter, String enumName, Set<Modifier> implicitModifiers)
       throws IOException {
+	ensureInitialized();
     // Nested classes interrupt wrapped line indentation. Stash the current wrapping state and put
     // it back afterwards when this type is complete.
     int previousStatementLine = codeWriter.statementLine;
@@ -343,16 +356,16 @@ public final class TypeSpec {
     }
   }
 
-  @Override public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null) return false;
-    if (getClass() != o.getClass()) return false;
-    return toString().equals(o.toString());
-  }
-
-  @Override public int hashCode() {
-    return toString().hashCode();
-  }
+//  @Override public boolean equals(Object o) {
+//    if (this == o) return true;
+//    if (o == null) return false;
+//    if (getClass() != o.getClass()) return false;
+//    return toString().equals(o.toString());
+//  }
+//
+//  @Override public int hashCode() {
+//    return toString().hashCode();
+//  }
 
   @Override public String toString() {
     StringBuilder out = new StringBuilder();
@@ -406,7 +419,7 @@ public final class TypeSpec {
     }
   }
 
-  public static final class Builder {
+  public static final class Builder implements Initializer<TypeSpec> {
     private final Kind kind;
     private final String name;
     private final CodeBlock anonymousTypeArguments;
@@ -417,14 +430,14 @@ public final class TypeSpec {
     private final CodeBlock.Builder initializerBlock = CodeBlock.builder();
 
     public final Map<String, TypeSpec> enumConstants = new LinkedHashMap<>();
-    public final List<AnnotationSpec> annotations = new ArrayList<>();
-    public final List<Modifier> modifiers = new ArrayList<>();
-    public final List<TypeVariableName> typeVariables = new ArrayList<>();
-    public final List<TypeName> superinterfaces = new ArrayList<>();
+    public final Set<AnnotationSpec> annotations = new LinkedHashSet<>();
+    public final Set<Modifier> modifiers = new LinkedHashSet<>();
+    public final Set<TypeVariableName> typeVariables = new LinkedHashSet<>();
+    public final Set<TypeName> superinterfaces = new LinkedHashSet<>();
     public final List<FieldSpec> fieldSpecs = new ArrayList<>();
-    public final List<MethodSpec> methodSpecs = new ArrayList<>();
-    public final List<TypeSpec> typeSpecs = new ArrayList<>();
-    public final List<Element> originatingElements = new ArrayList<>();
+    public final Set<MethodSpec> methodSpecs = new LinkedHashSet<>();
+    public final Set<TypeSpec> typeSpecs = new LinkedHashSet<>();
+    public final Set<Element> originatingElements = new LinkedHashSet<>();
     public final Set<String> alwaysQualifiedNames = new LinkedHashSet<>();
 
     private Builder(Kind kind, String name,
@@ -434,6 +447,161 @@ public final class TypeSpec {
       this.name = name;
       this.anonymousTypeArguments = anonymousTypeArguments;
     }
+ 	
+ 	/* (non-Javadoc)
+ 	 * @see java.lang.Object#hashCode()
+ 	 */
+ 	@Override
+ 	public int hashCode() {
+ 	    final int prime = 31;
+ 	    int result = 1;
+ 	    result = prime * result + ((annotations == null) ? 0 : annotations.hashCode());
+ 	    result = prime * result
+ 	            + ((anonymousTypeArguments == null) ? 0 : anonymousTypeArguments.hashCode());
+ 	    result = prime * result + ((enumConstants == null) ? 0 : enumConstants.hashCode());
+ 	    result = prime * result + ((fieldSpecs == null) ? 0 : fieldSpecs.hashCode());
+ 	    result = prime * result + ((initializerBlock == null) ? 0 : initializerBlock.hashCode());
+ 	    result = prime * result + ((javadoc == null) ? 0 : javadoc.hashCode());
+ 	    result = prime * result + ((kind == null) ? 0 : kind.hashCode());
+ 	    result = prime * result + ((methodSpecs == null) ? 0 : methodSpecs.hashCode());
+ 	    result = prime * result + ((modifiers == null) ? 0 : modifiers.hashCode());
+ 	    result = prime * result + ((name == null) ? 0 : name.hashCode());
+ 	    result = prime * result
+ 	            + ((originatingElements == null) ? 0 : originatingElements.hashCode());
+ 	    result = prime * result + ((staticBlock == null) ? 0 : staticBlock.hashCode());
+ 	    result = prime * result + ((superclass == null) ? 0 : superclass.hashCode());
+ 	    result = prime * result + ((superinterfaces == null) ? 0 : superinterfaces.hashCode());
+ 	    result = prime * result + ((typeSpecs == null) ? 0 : typeSpecs.hashCode());
+ 	    result = prime * result + ((typeVariables == null) ? 0 : typeVariables.hashCode());
+ 	    if (LOGGER.isTraceEnabled()) LOGGER.trace("new hashcode for TypeSpec.Builder {} is {}", getName(), result);
+ 	    return result;
+ 	}
+ 	
+ 	/* (non-Javadoc)
+ 	 * @see java.lang.Object#equals(java.lang.Object)
+ 	 */
+ 	@Override
+ 	public boolean equals(Object obj) {
+ 	    if (this == obj) {
+ 	        return true;
+ 	    }
+ 	    if (obj == null) {
+ 	        return false;
+ 	    }
+ 	    if (!(obj instanceof Builder)) {
+ 	        return false;
+ 	    }
+ 	    Builder other = (Builder) obj;
+ 	    if (annotations == null) {
+ 	        if (other.annotations != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!annotations.equals(other.annotations)) {
+ 	        return false;
+ 	    }
+ 	    if (anonymousTypeArguments == null) {
+ 	        if (other.anonymousTypeArguments != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!anonymousTypeArguments.equals(other.anonymousTypeArguments)) {
+ 	        return false;
+ 	    }
+ 	    if (enumConstants == null) {
+ 	        if (other.enumConstants != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!enumConstants.equals(other.enumConstants)) {
+ 	        return false;
+ 	    }
+ 	    if (fieldSpecs == null) {
+ 	        if (other.fieldSpecs != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!fieldSpecs.equals(other.fieldSpecs)) {
+ 	        return false;
+ 	    }
+ 	    if (initializerBlock == null) {
+ 	        if (other.initializerBlock != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!initializerBlock.equals(other.initializerBlock)) {
+ 	        return false;
+ 	    }
+ 	    if (javadoc == null) {
+ 	        if (other.javadoc != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!javadoc.equals(other.javadoc)) {
+ 	        return false;
+ 	    }
+ 	    if (kind != other.kind) {
+ 	        return false;
+ 	    }
+ 	    if (methodSpecs == null) {
+ 	        if (other.methodSpecs != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!methodSpecs.equals(other.methodSpecs)) {
+ 	        return false;
+ 	    }
+ 	    if (modifiers == null) {
+ 	        if (other.modifiers != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!modifiers.equals(other.modifiers)) {
+ 	        return false;
+ 	    }
+ 	    if (name == null) {
+ 	        if (other.name != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!name.equals(other.name)) {
+ 	        return false;
+ 	    }
+ 	    if (originatingElements == null) {
+ 	        if (other.originatingElements != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!originatingElements.equals(other.originatingElements)) {
+ 	        return false;
+ 	    }
+ 	    if (staticBlock == null) {
+ 	        if (other.staticBlock != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!staticBlock.equals(other.staticBlock)) {
+ 	        return false;
+ 	    }
+ 	    if (superclass == null) {
+ 	        if (other.superclass != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!superclass.equals(other.superclass)) {
+ 	        return false;
+ 	    }
+ 	    if (superinterfaces == null) {
+ 	        if (other.superinterfaces != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!superinterfaces.equals(other.superinterfaces)) {
+ 	        return false;
+ 	    }
+ 	    if (typeSpecs == null) {
+ 	        if (other.typeSpecs != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!typeSpecs.equals(other.typeSpecs)) {
+ 	        return false;
+ 	    }
+ 	    if (typeVariables == null) {
+ 	        if (other.typeVariables != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!typeVariables.equals(other.typeVariables)) {
+ 	        return false;
+ 	    }
+ 	    return true;
+ 	}
 
     public Builder addJavadoc(String format, Object... args) {
       javadoc.add(format, args);
@@ -833,5 +1001,10 @@ public final class TypeSpec {
 
       return new TypeSpec(this);
     }
+ 	
+ 	@Override
+ 	public String getName() {
+ 	    return name;
+ 	}
   }
 }
