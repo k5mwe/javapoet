@@ -32,7 +32,7 @@ import static com.squareup.javapoet.Util.checkArgument;
 import static com.squareup.javapoet.Util.checkNotNull;
 
 /** A generated parameter declaration. */
-public final class ParameterSpec {
+public final class ParameterSpec  extends Initializable<ParameterSpec>{
   transient public String name;
   transient public List<AnnotationSpec> annotations;
   transient public Set<Modifier> modifiers;

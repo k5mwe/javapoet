@@ -89,7 +89,7 @@ public class TypeName extends Initializable<TypeName> implements Initializer<Typ
 
   /** The name of this type if it is a keyword, or null. */
   private final String keyword;
-  transient final List<AnnotationSpec> annotations;
+  transient List<AnnotationSpec> annotations;
   public List<AnnotationSpec> annotationList;
 
   /** Lazily-initialized toString of this type name. */
@@ -100,6 +100,7 @@ public class TypeName extends Initializable<TypeName> implements Initializer<Typ
   }
 
   private TypeName(String keyword, List<AnnotationSpec> annotations) {
+	this.keyword = keyword;
 	this.annotationList = annotations;
 	this.annotations = Util.immutableList(annotationList);
 	super.initialize(this);

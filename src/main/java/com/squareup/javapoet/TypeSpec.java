@@ -49,24 +49,24 @@ import static com.squareup.javapoet.Util.requireExactlyOneOf;
 /** A generated class, interface, or enum declaration. */
 public final class TypeSpec extends Initializable<TypeSpec> { 	
   private static final Logger LOGGER = LoggerFactory.getLogger(TypeSpec.class);
-  transient public final Kind kind;
-  transient public final String name;
-  transient public final CodeBlock anonymousTypeArguments;
-  transient public final CodeBlock javadoc;
-  transient public final List<AnnotationSpec> annotations;
-  transient public final Set<Modifier> modifiers;
-  transient public final List<TypeVariableName> typeVariables;
-  transient public final TypeName superclass;
-  transient public final List<TypeName> superinterfaces;
-  transient public final Map<String, TypeSpec> enumConstants;
-  transient public final List<FieldSpec> fieldSpecs;
-  transient public final CodeBlock staticBlock;
-  transient public final CodeBlock initializerBlock;
-  transient public final List<MethodSpec> methodSpecs;
-  transient public final List<TypeSpec> typeSpecs;
-  transient final Set<String> nestedTypesSimpleNames;
-  transient public final List<Element> originatingElements;
-  transient public final Set<String> alwaysQualifiedNames;
+  transient public Kind kind;
+  transient public String name;
+  transient public CodeBlock anonymousTypeArguments;
+  transient public CodeBlock javadoc;
+  transient public List<AnnotationSpec> annotations;
+  transient public Set<Modifier> modifiers;
+  transient public List<TypeVariableName> typeVariables;
+  transient public TypeName superclass;
+  transient public List<TypeName> superinterfaces;
+  transient public Map<String, TypeSpec> enumConstants;
+  transient public List<FieldSpec> fieldSpecs;
+  transient public CodeBlock staticBlock;
+  transient public CodeBlock initializerBlock;
+  transient public List<MethodSpec> methodSpecs;
+  transient public List<TypeSpec> typeSpecs;
+  transient public Set<String> nestedTypesSimpleNames;
+  transient public List<Element> originatingElements;
+  transient public Set<String> alwaysQualifiedNames;
 
   private TypeSpec(Builder builder) {
 	initialize(builder);

@@ -29,7 +29,7 @@ import static com.squareup.javapoet.Util.checkNotNull;
 import static com.squareup.javapoet.Util.checkState;
 
 /** A generated field declaration. */
-public final class FieldSpec {
+public final class FieldSpec extends Initializable<FieldSpec> {
   transient public TypeName type;
   transient public String name;
   transient public CodeBlock javadoc;

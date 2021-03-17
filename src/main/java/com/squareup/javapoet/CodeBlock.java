@@ -62,7 +62,7 @@ import static com.squareup.javapoet.Util.checkArgument;
  *   <li>{@code $]} ends a statement.
  * </ul>
  */
-public final class CodeBlock  extends Initializable<CodeBlock> {
+public final class CodeBlock extends Initializable<CodeBlock> {
   private static final Pattern NAMED_ARGUMENT =
       Pattern.compile("\\$(?<argumentName>[\\w_]+):(?<typeChar>[\\w]).*");
   private static final Pattern LOWERCASE = Pattern.compile("[a-z]+[\\w_]*");
@@ -488,6 +488,11 @@ public final class CodeBlock  extends Initializable<CodeBlock> {
     public CodeBlock build() {
       return new CodeBlock(this);
     }
+ 	
+ 	@Override
+ 	public String getName() {
+ 	    return this.toString();
+ 	}
   }
 
   private static final class CodeBlockJoiner {
@@ -521,10 +526,5 @@ public final class CodeBlock  extends Initializable<CodeBlock> {
     CodeBlock join() {
       return builder.build();
     }
- 	
- 	@Override
- 	public String getName() {
- 	    return this.toString();
- 	}
   }
 }
