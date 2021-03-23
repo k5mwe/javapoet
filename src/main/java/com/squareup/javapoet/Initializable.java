@@ -39,7 +39,8 @@ public abstract class Initializable<T> {
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof Initializable) {
-			Initializer<T> otherInitializer = ((Initializable) other).initializer;
+			@SuppressWarnings("unchecked")
+			Initializer<T> otherInitializer = ((Initializable<T>) other).initializer;
 			return (initializer.equals(otherInitializer));
 		}
 		return false;

@@ -213,16 +213,16 @@ public class TypeName extends Initializable<TypeName> implements Initializer<Typ
     throw new UnsupportedOperationException("cannot unbox " + this);
   }
 
-//  @Override public final boolean equals(Object o) {
-//    if (this == o) return true;
-//    if (o == null) return false;
-//    if (getClass() != o.getClass()) return false;
-//    return toString().equals(o.toString());
-//  }
-//
-//  @Override public final int hashCode() {
-//    return toString().hashCode();
-//  }
+  @Override public final boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null) return false;
+    if (getClass() != o.getClass()) return false;
+    return toString().equals(o.toString());
+  }
+
+  @Override public final int hashCode() {
+    return toString().hashCode();
+  }
 
   @Override public final String toString() {
     String result = cachedString;

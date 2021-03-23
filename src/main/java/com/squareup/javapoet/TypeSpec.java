@@ -455,9 +455,9 @@ public final class TypeSpec extends Initializable<TypeSpec> {
  	public int hashCode() {
  	    final int prime = 31;
  	    int result = 1;
+ 	    result = prime * result + ((alwaysQualifiedNames == null) ? 0 : alwaysQualifiedNames.hashCode());
  	    result = prime * result + ((annotations == null) ? 0 : annotations.hashCode());
- 	    result = prime * result
- 	            + ((anonymousTypeArguments == null) ? 0 : anonymousTypeArguments.hashCode());
+ 	    result = prime * result + ((anonymousTypeArguments == null) ? 0 : anonymousTypeArguments.hashCode());
  	    result = prime * result + ((enumConstants == null) ? 0 : enumConstants.hashCode());
  	    result = prime * result + ((fieldSpecs == null) ? 0 : fieldSpecs.hashCode());
  	    result = prime * result + ((initializerBlock == null) ? 0 : initializerBlock.hashCode());
@@ -466,8 +466,7 @@ public final class TypeSpec extends Initializable<TypeSpec> {
  	    result = prime * result + ((methodSpecs == null) ? 0 : methodSpecs.hashCode());
  	    result = prime * result + ((modifiers == null) ? 0 : modifiers.hashCode());
  	    result = prime * result + ((name == null) ? 0 : name.hashCode());
- 	    result = prime * result
- 	            + ((originatingElements == null) ? 0 : originatingElements.hashCode());
+ 	    result = prime * result + ((originatingElements == null) ? 0 : originatingElements.hashCode());
  	    result = prime * result + ((staticBlock == null) ? 0 : staticBlock.hashCode());
  	    result = prime * result + ((superclass == null) ? 0 : superclass.hashCode());
  	    result = prime * result + ((superinterfaces == null) ? 0 : superinterfaces.hashCode());
@@ -492,6 +491,13 @@ public final class TypeSpec extends Initializable<TypeSpec> {
  	        return false;
  	    }
  	    Builder other = (Builder) obj;
+ 	    if (alwaysQualifiedNames == null) {
+ 	        if (other.alwaysQualifiedNames != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!alwaysQualifiedNames.equals(other.alwaysQualifiedNames)) {
+ 	        return false;
+ 	    }
  	    if (annotations == null) {
  	        if (other.annotations != null) {
  	            return false;
