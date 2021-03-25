@@ -52,7 +52,8 @@ public class FieldSpecTest {
           .addAnnotation(Override.class)
           .addAnnotation(SuppressWarnings.class);
 
-    builder.annotations.remove(1);
+    AnnotationSpec suppressWarnings = AnnotationSpec.builder(ClassName.get(SuppressWarnings.class)).build();
+    builder.annotations.remove(suppressWarnings);
     assertThat(builder.build().annotations).hasSize(1);
   }
 
@@ -60,7 +61,7 @@ public class FieldSpecTest {
     FieldSpec.Builder builder = FieldSpec.builder(int.class, "foo")
           .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
-    builder.modifiers.remove(1);
+    builder.modifiers.remove(Modifier.STATIC);
     assertThat(builder.build().modifiers).containsExactly(Modifier.PUBLIC);
   }
 }

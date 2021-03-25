@@ -316,8 +316,8 @@ public final class MethodSpec extends Initializable<MethodSpec> {
     private boolean varargs;
     private CodeBlock defaultValue;
 
-    public final Set<TypeVariableName> typeVariables = new HashSet<>();
-    public final Set<AnnotationSpec> annotations = new HashSet<>();
+    public final List<TypeVariableName> typeVariables = new ArrayList<>();
+    public final Set<AnnotationSpec> annotations = new LinkedHashSet<>();
     public final Set<Modifier> modifiers = new HashSet<>();
     public final List<ParameterSpec> parameters = new ArrayList<>();
 

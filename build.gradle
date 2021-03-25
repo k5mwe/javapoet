@@ -1,0 +1,53 @@
+/**
+ * NOTE: Javapoet can be build itself using the gradle java build. Its subproject is a dependency of the p3cobol parent project.
+ * This project builds a full distribution jar of javapoet that is compatible with the p3cobol version.
+ */
+
+plugins {
+    id 'java'
+    id 'eclipse'
+}
+
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+
+    implementation(group: 'org.slf4j', name: 'slf4j-api', version: '1.7.21') { transitive = false }
+    implementation(group: 'ch.qos.logback', name: 'logback-core', version: '1.1.7') { transitive = false }
+    implementation(group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7') { transitive = false }
+    
+    testImplementation(group: 'junit', name: 'junit', version: '4.+')
+    testImplementation(group: 'com.google.truth', name: 'truth', version: '0.39')
+    testImplementation(group: 'com.google.testing.compile', name: 'compile-testing', version: '0.15')
+    testImplementation(group: 'com.google.jimfs', name: 'jimfs', version: '1.1')
+    testImplementation(group: 'org.mockito', name: 'mockito-core', version: '2.13.0')
+    testImplementation(group: 'org.eclipse.jdt.core.compiler', name: 'ecj', version: '4.6.1')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'src/main/java'
+        }
+    }
+    test {
+        java {
+            srcDirs 'src/main/test'
+        }
+    }
+}
+
+eclipse {
+    classpath {
+        sourceSets = [ sourceSets.main ]
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'P3/COBOL - Javapoet Subsystem', 
+        'Implementation-Version': project.version
+    }
+}

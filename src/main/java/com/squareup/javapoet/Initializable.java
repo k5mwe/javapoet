@@ -3,8 +3,6 @@ package com.squareup.javapoet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.turrettech.p3cobol.P3Compiler;
-
 public abstract class Initializable<T> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Initializable.class);

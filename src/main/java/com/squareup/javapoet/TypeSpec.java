@@ -432,7 +432,7 @@ public final class TypeSpec extends Initializable<TypeSpec> {
     public final Map<String, TypeSpec> enumConstants = new LinkedHashMap<>();
     public final Set<AnnotationSpec> annotations = new LinkedHashSet<>();
     public final Set<Modifier> modifiers = new LinkedHashSet<>();
-    public final Set<TypeVariableName> typeVariables = new LinkedHashSet<>();
+    public final List<TypeVariableName> typeVariables = new ArrayList<>();
     public final Set<TypeName> superinterfaces = new LinkedHashSet<>();
     public final List<FieldSpec> fieldSpecs = new ArrayList<>();
     public final Set<MethodSpec> methodSpecs = new LinkedHashSet<>();

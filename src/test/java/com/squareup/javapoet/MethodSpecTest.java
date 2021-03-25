@@ -164,6 +164,7 @@ public final class MethodSpecTest {
     MethodSpec method = MethodSpec.overriding(methodElement)
         .addStatement("return null")
         .build();
+    System.err.println(method.toString());
     assertThat(method.toString()).isEqualTo(""
         + "@java.lang.Override\n"
         + "<T, R, V extends java.lang.Throwable> T run(R param) throws V {\n"
@@ -390,7 +391,7 @@ public final class MethodSpecTest {
             .addAnnotation(Override.class)
             .addAnnotation(SuppressWarnings.class);
 
-    builder.annotations.remove(1);
+    builder.annotations.remove(AnnotationSpec.builder(ClassName.get(SuppressWarnings.class)).build());
     assertThat(builder.build().annotations).hasSize(1);
   }
 
@@ -398,7 +399,7 @@ public final class MethodSpecTest {
     MethodSpec.Builder builder = MethodSpec.methodBuilder("foo")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
-    builder.modifiers.remove(1);
+    builder.modifiers.remove(Modifier.STATIC);
     assertThat(builder.build().modifiers).containsExactly(Modifier.PUBLIC);
   }
 
@@ -416,7 +417,7 @@ public final class MethodSpecTest {
             .addTypeVariable(t)
             .addTypeVariable(TypeVariableName.get("V"));
 
-    builder.typeVariables.remove(1);
+    builder.typeVariables.remove(TypeVariableName.get("V"));
     assertThat(builder.build().typeVariables).containsExactly(t);
   }
 
