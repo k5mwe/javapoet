@@ -45,7 +45,6 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
   /** This class name, like "Entry" for java.util.Map.Entry. */
   final String simpleName;
   
-  private List<String> mutableNames;
   transient private List<String> simpleNames;
 
   /** The full class name like "java.util.Map.Entry". */
@@ -118,14 +117,13 @@ public final class ClassName extends TypeName implements Comparable<ClassName> {
     if (simpleNames != null) {
       return simpleNames;
     }
-    mutableNames = new ArrayList<>();
     if (enclosingClassName == null) {
-      mutableNames.add(simpleName);
-    } else {
-      mutableNames.addAll(enclosingClassName().simpleNames());
-      mutableNames.add(simpleName);
+      return simpleNames = Collections.singletonList(simpleName);
     }
-    simpleNames = Collections.unmodifiableList(mutableNames);
+    List<String> mutableNames = new ArrayList<>();    
+    mutableNames.addAll(enclosingClassName().simpleNames());
+    mutableNames.add(simpleName);
+    simpleNames = /* Collections.unmodifiableList( */ mutableNames /*)*/; //FIXME: experiment
     return simpleNames;
   }
 
