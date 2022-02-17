@@ -36,6 +36,10 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.tools.SimpleJavaFileObject;
 
 import static com.squareup.javapoet.Util.checkArgument;
@@ -44,6 +48,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /** A Java file containing a single top level class. */
 public final class JavaFile {
+  private static final Logger LOGGER = LoggerFactory.getLogger(JavaFile.class);
   private static final Appendable NULL_APPENDABLE = new Appendable() {
     @Override public Appendable append(CharSequence charSequence) {
       return this;
@@ -180,6 +185,7 @@ public final class JavaFile {
   }
 
   private void emit(CodeWriter codeWriter) throws IOException {
+    if (LOGGER.isDebugEnabled()) LOGGER.debug("-> emit JavaFile {}", codeWriter);
     codeWriter.pushPackage(packageName);
 
     if (!fileComment.isEmpty()) {
@@ -217,6 +223,7 @@ public final class JavaFile {
     typeSpec.emit(codeWriter, null, Collections.emptySet());
 
     codeWriter.popPackage();
+    if (LOGGER.isDebugEnabled()) LOGGER.debug("<- emitted JavaFile");
   }
 
   @Override public boolean equals(Object o) {

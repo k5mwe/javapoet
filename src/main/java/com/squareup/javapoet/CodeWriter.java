@@ -31,6 +31,9 @@ import java.util.regex.Pattern;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Modifier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.squareup.javapoet.Util.checkArgument;
 import static com.squareup.javapoet.Util.checkNotNull;
 import static com.squareup.javapoet.Util.checkState;
@@ -42,6 +45,7 @@ import static java.lang.String.join;
  * honors imports, indentation, and deferred variable names.
  */
 final class CodeWriter {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CodeWriter.class);
   /** Sentinel value that indicates that no user-provided package has been set. */
   private static final String NO_PACKAGE = new String();
   private static final Pattern LINE_BREAKING_PATTERN = Pattern.compile("\\R");
@@ -230,6 +234,7 @@ final class CodeWriter {
   }
 
   public CodeWriter emit(CodeBlock codeBlock, boolean ensureTrailingNewline) throws IOException {
+    if (LOGGER.isTraceEnabled()) LOGGER.trace("---> emit('{}')", codeBlock);
     int a = 0;
     ClassName deferredTypeName = null; // used by "import static" logic
     ListIterator<String> partIterator = codeBlock.formatParts.listIterator();
@@ -321,6 +326,7 @@ final class CodeWriter {
     if (ensureTrailingNewline && out.lastChar() != '\n') {
       emit("\n");
     }
+    if (LOGGER.isTraceEnabled()) LOGGER.trace("<--- end emitting CodeBlock");
     return this;
   }
 

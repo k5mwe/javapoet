@@ -27,6 +27,9 @@ import java.util.stream.StreamSupport;
 import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeMirror;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.squareup.javapoet.Util.checkArgument;
 
 /**
@@ -63,6 +66,7 @@ import static com.squareup.javapoet.Util.checkArgument;
  * </ul>
  */
 public final class CodeBlock extends Initializable<CodeBlock> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CodeBlock.class);
   private static final Pattern NAMED_ARGUMENT =
       Pattern.compile("\\$(?<argumentName>[\\w_]+):(?<typeChar>[\\w]).*");
   private static final Pattern LOWERCASE = Pattern.compile("[a-z]+[\\w_]*");
@@ -104,6 +108,7 @@ public final class CodeBlock extends Initializable<CodeBlock> {
     StringBuilder out = new StringBuilder();
     try {
       ensureInitialized();
+      if (LOGGER.isDebugEnabled()) LOGGER.trace("--> CodeBlock.toString: '{}'", this);
       new CodeWriter(out).emit(this);
       return out.toString();
     } catch (IOException e) {
