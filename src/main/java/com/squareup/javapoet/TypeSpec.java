@@ -276,6 +276,8 @@ public final class TypeSpec extends Initializable<TypeSpec> {
       codeWriter.pushType(this);
       codeWriter.indent();
       boolean firstMember = true;
+      boolean needsSeparator = kind == Kind.ENUM
+              && (!fieldSpecs.isEmpty() || !methodSpecs.isEmpty() || !typeSpecs.isEmpty());
       for (Iterator<Map.Entry<String, TypeSpec>> i = enumConstants.entrySet().iterator();
           i.hasNext(); ) {
         Map.Entry<String, TypeSpec> enumConstant = i.next();
@@ -284,12 +286,12 @@ public final class TypeSpec extends Initializable<TypeSpec> {
         firstMember = false;
         if (i.hasNext()) {
           codeWriter.emit(",\n");
-        } else if (!fieldSpecs.isEmpty() || !methodSpecs.isEmpty() || !typeSpecs.isEmpty()) {
-          codeWriter.emit(";\n");
-        } else {
+        } else if (!needsSeparator) {
           codeWriter.emit("\n");
         }
       }
+
+      if (needsSeparator) codeWriter.emit(";\n");
 
       // Static fields.
       for (FieldSpec fieldSpec : fieldSpecs) {
@@ -937,9 +939,6 @@ public final class TypeSpec extends Initializable<TypeSpec> {
         }
       }
 
-      checkArgument(kind != Kind.ENUM || !enumConstants.isEmpty(),
-          "at least one enum constant is required for %s", name);
-
       for (TypeName superinterface : superinterfaces) {
         checkArgument(superinterface != null, "superinterfaces contains null");
       }
@@ -970,9 +969,16 @@ public final class TypeSpec extends Initializable<TypeSpec> {
 
       for (MethodSpec methodSpec : methodSpecs) {
         if (kind == Kind.INTERFACE) {
-          requireExactlyOneOf(methodSpec.modifiers, Modifier.ABSTRACT, Modifier.STATIC,
-              Modifier.DEFAULT);
           requireExactlyOneOf(methodSpec.modifiers, Modifier.PUBLIC, Modifier.PRIVATE);
+          if (methodSpec.modifiers.contains(Modifier.PRIVATE)) {
+            checkState(!methodSpec.hasModifier(Modifier.DEFAULT),
+                "%s %s.%s cannot be private and default", kind, name, methodSpec.name);
+            checkState(!methodSpec.hasModifier(Modifier.ABSTRACT),
+                "%s %s.%s cannot be private and abstract", kind, name, methodSpec.name);
+          } else {
+            requireExactlyOneOf(methodSpec.modifiers, Modifier.ABSTRACT, Modifier.STATIC,
+                Modifier.DEFAULT);
+          }
         } else if (kind == Kind.ANNOTATION) {
           checkState(methodSpec.modifiers.equals(kind.implicitMethodModifiers),
               "%s %s.%s requires modifiers %s",

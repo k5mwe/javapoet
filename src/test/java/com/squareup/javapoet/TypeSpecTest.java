@@ -465,13 +465,19 @@ public final class TypeSpecTest {
         + "}\n");
   }
 
-  @Test public void enumConstantsRequired() throws Exception {
-    try {
-      TypeSpec.enumBuilder("Roshambo")
-          .build();
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
+  @Test public void noEnumConstants() throws Exception {
+    TypeSpec roshambo = TypeSpec.enumBuilder("Roshambo")
+            .addField(String.class, "NO_ENUM", Modifier.STATIC)
+            .build();
+    assertThat(toString(roshambo)).isEqualTo(""
+            + "package com.squareup.tacos;\n"
+            + "\n"
+            + "import java.lang.String;\n"
+            + "\n"
+            + "enum Roshambo {\n"
+            + "  ;\n"
+            + "  static String NO_ENUM;\n"
+            + "}\n");
   }
 
   @Test public void onlyEnumsMayHaveEnumConstants() throws Exception {
@@ -928,6 +934,83 @@ public final class TypeSpecTest {
         + "\n"
         + "interface Tacos {\n"
         + "  default int test() {\n"
+        + "    return 0;\n"
+        + "  }\n"
+        + "}\n"
+    );
+  }
+
+  @Test
+  public void invalidInterfacePrivateMethods() {
+    try {
+      TypeSpec.interfaceBuilder("Tacos")
+          .addMethod(MethodSpec.methodBuilder("test")
+              .addModifiers(Modifier.PRIVATE, Modifier.DEFAULT)
+              .returns(int.class)
+              .addCode(CodeBlock.builder().addStatement("return 0").build())
+              .build())
+          .build();
+      fail();
+    } catch (IllegalStateException expected) {
+    }
+
+    try {
+      TypeSpec.interfaceBuilder("Tacos")
+          .addMethod(MethodSpec.methodBuilder("test")
+              .addModifiers(Modifier.PRIVATE, Modifier.ABSTRACT)
+              .returns(int.class)
+              .build())
+          .build();
+      fail();
+    } catch (IllegalStateException expected) {
+    }
+
+    try {
+      TypeSpec.interfaceBuilder("Tacos")
+          .addMethod(MethodSpec.methodBuilder("test")
+              .addModifiers(Modifier.PRIVATE, Modifier.PUBLIC)
+              .returns(int.class)
+              .addCode(CodeBlock.builder().addStatement("return 0").build())
+              .build())
+          .build();
+      fail();
+    } catch (IllegalArgumentException expected) {
+    }
+  }
+
+  @Test
+  public void interfacePrivateMethods() {
+    TypeSpec bar = TypeSpec.interfaceBuilder("Tacos")
+        .addMethod(MethodSpec.methodBuilder("test")
+            .addModifiers(Modifier.PRIVATE)
+            .returns(int.class)
+            .addCode(CodeBlock.builder().addStatement("return 0").build())
+            .build())
+        .build();
+
+    assertThat(toString(bar)).isEqualTo(""
+        + "package com.squareup.tacos;\n"
+        + "\n"
+        + "interface Tacos {\n"
+        + "  private int test() {\n"
+        + "    return 0;\n"
+        + "  }\n"
+        + "}\n"
+    );
+
+    bar = TypeSpec.interfaceBuilder("Tacos")
+        .addMethod(MethodSpec.methodBuilder("test")
+            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+            .returns(int.class)
+            .addCode(CodeBlock.builder().addStatement("return 0").build())
+            .build())
+        .build();
+
+    assertThat(toString(bar)).isEqualTo(""
+        + "package com.squareup.tacos;\n"
+        + "\n"
+        + "interface Tacos {\n"
+        + "  private static int test() {\n"
         + "    return 0;\n"
         + "  }\n"
         + "}\n"
