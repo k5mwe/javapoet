@@ -44,6 +44,8 @@ import static com.squareup.javapoet.Util.checkNotNull;
 public final class AnnotationSpec extends Initializable<AnnotationSpec> {
   transient public TypeName type;
   transient public Map<String, List<CodeBlock>> members;
+  
+  public static final String VALUE = "value"; 
 
   private AnnotationSpec(Builder builder) {
 	initialize(builder); 
