@@ -18,11 +18,11 @@ dependencies {
     implementation(group: 'ch.qos.logback', name: 'logback-core', version: '1.1.7') { transitive = false }
     implementation(group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.7') { transitive = false }
     
-    testImplementation(group: 'junit', name: 'junit', version: '4.+')
-    testImplementation(group: 'com.google.truth', name: 'truth', version: '0.39')
-    testImplementation(group: 'com.google.testing.compile', name: 'compile-testing', version: '0.15')
-    testImplementation(group: 'com.google.jimfs', name: 'jimfs', version: '1.1')
-    testImplementation(group: 'org.mockito', name: 'mockito-core', version: '2.13.0')
+    testImplementation(group: 'junit', name: 'junit', version: '4.13.2')
+    testImplementation(group: 'com.google.truth', name: 'truth', version: '1.1.3')
+    testImplementation(group: 'com.google.testing.compile', name: 'compile-testing', version: '0.19')
+    testImplementation(group: 'com.google.jimfs', name: 'jimfs', version: '1.2')
+    testImplementation(group: 'org.mockito', name: 'mockito-core', version: '4.5.1')
     testImplementation(group: 'org.eclipse.jdt.core.compiler', name: 'ecj', version: '4.6.1')
 }
 
@@ -48,6 +48,7 @@ eclipse {
 jar {
     manifest {
         attributes 'Implementation-Title': 'P3/COBOL - Javapoet Subsystem', 
-        'Implementation-Version': project.version
+        'Implementation-Version': project.version,
+        'Automatic-Module-Name': 'com.squareup.javapoet'
     }
 }
