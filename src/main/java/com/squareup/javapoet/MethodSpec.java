@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,28 +35,37 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Types;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.squareup.javapoet.Util.checkArgument;
 import static com.squareup.javapoet.Util.checkNotNull;
 import static com.squareup.javapoet.Util.checkState;
 
 /** A generated constructor or method declaration. */
-public final class MethodSpec {
+public final class MethodSpec extends Initializable<MethodSpec> {
   static final String CONSTRUCTOR = "<init>";
+  private static final Logger LOGGER = LoggerFactory.getLogger(MethodSpec.class);
 
-  public final String name;
-  public final CodeBlock javadoc;
-  public final List<AnnotationSpec> annotations;
-  public final Set<Modifier> modifiers;
-  public final List<TypeVariableName> typeVariables;
-  public final TypeName returnType;
-  public final List<ParameterSpec> parameters;
-  public final boolean varargs;
-  public final List<TypeName> exceptions;
-  public final CodeBlock code;
-  public final CodeBlock defaultValue;
+  transient public String name;
+  transient public CodeBlock javadoc;
+  transient public List<AnnotationSpec> annotations;
+  transient public Set<Modifier> modifiers;
+  transient public List<TypeVariableName> typeVariables;
+  transient public TypeName returnType;
+  transient public List<ParameterSpec> parameters;
+  transient public boolean varargs;
+  transient public List<TypeName> exceptions;
+  transient public CodeBlock code;
+  transient public CodeBlock defaultValue;
 
   private MethodSpec(Builder builder) {
+	initialize(builder);
+  }
+  
+  @Override
+  public final void initialize(Initializer<MethodSpec> aBuilder) {
+	Builder builder = (Builder) aBuilder;
     CodeBlock code = builder.code.build();
     checkArgument(code.isEmpty() || !builder.modifiers.contains(Modifier.ABSTRACT),
         "abstract method %s cannot have code", builder.name);
@@ -73,6 +83,7 @@ public final class MethodSpec {
     this.exceptions = Util.immutableList(builder.exceptions);
     this.defaultValue = builder.defaultValue;
     this.code = code;
+    super.initialize(builder);
   }
 
   private boolean lastParameterIsArray(List<ParameterSpec> parameters) {
@@ -82,6 +93,7 @@ public final class MethodSpec {
 
   void emit(CodeWriter codeWriter, String enclosingName, Set<Modifier> implicitModifiers)
       throws IOException {
+	ensureInitialized();
     codeWriter.emitJavadoc(javadocWithParameters());
     codeWriter.emitAnnotations(annotations, false);
     codeWriter.emitModifiers(modifiers, implicitModifiers);
@@ -141,6 +153,7 @@ public final class MethodSpec {
   }
 
   private CodeBlock javadocWithParameters() {
+	ensureInitialized();
     CodeBlock.Builder builder = javadoc.toBuilder();
     boolean emitTagNewline = true;
     for (ParameterSpec parameterSpec : parameters) {
@@ -155,23 +168,25 @@ public final class MethodSpec {
   }
 
   public boolean hasModifier(Modifier modifier) {
+	ensureInitialized();
     return modifiers.contains(modifier);
   }
 
   public boolean isConstructor() {
+    ensureInitialized();
     return name.equals(CONSTRUCTOR);
   }
 
-  @Override public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null) return false;
-    if (getClass() != o.getClass()) return false;
-    return toString().equals(o.toString());
-  }
-
-  @Override public int hashCode() {
-    return toString().hashCode();
-  }
+//  @Override public boolean equals(Object o) {
+//    if (this == o) return true;
+//    if (o == null) return false;
+//    if (getClass() != o.getClass()) return false;
+//    return toString().equals(o.toString());
+//  }
+//
+//  @Override public int hashCode() {
+//    return toString().hashCode();
+//  }
 
   @Override public String toString() {
     StringBuilder out = new StringBuilder();
@@ -291,7 +306,7 @@ public final class MethodSpec {
     return builder;
   }
 
-  public static final class Builder {
+  public static final class Builder implements Initializer<MethodSpec> {
     private String name;
 
     private final CodeBlock.Builder javadoc = CodeBlock.builder();
@@ -302,13 +317,144 @@ public final class MethodSpec {
     private CodeBlock defaultValue;
 
     public final List<TypeVariableName> typeVariables = new ArrayList<>();
-    public final List<AnnotationSpec> annotations = new ArrayList<>();
-    public final List<Modifier> modifiers = new ArrayList<>();
+    public final Set<AnnotationSpec> annotations = new LinkedHashSet<>();
+    public final Set<Modifier> modifiers = new HashSet<>();
     public final List<ParameterSpec> parameters = new ArrayList<>();
 
     private Builder(String name) {
       setName(name);
     }
+    
+    /* (non-Javadoc)
+ 	 * @see java.lang.Object#hashCode()
+ 	 */
+ 	@Override
+ 	public int hashCode() {
+ 	    final int prime = 31;
+ 	    int result = 1;
+ 	    result = prime * result + ((annotations == null) ? 0 : annotations.hashCode());
+ 	    result = prime * result + ((code == null) ? 0 : code.hashCode());
+ 	    result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
+ 	    result = prime * result + ((exceptions == null) ? 0 : exceptions.hashCode());
+ 	    result = prime * result + ((javadoc == null) ? 0 : javadoc.hashCode());
+ 	    result = prime * result + ((modifiers == null) ? 0 : modifiers.hashCode());
+ 	    result = prime * result + ((name == null) ? 0 : name.hashCode());
+ 	    result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
+ 	    result = prime * result + ((returnType == null) ? 0 : returnType.hashCode());
+ 	    result = prime * result + ((typeVariables == null) ? 0 : typeVariables.hashCode());
+ 	    result = prime * result + (varargs ? 1231 : 1237);
+ 	    return result;
+ 	}
+ 	
+ 	/* (non-Javadoc)
+ 	 * @see java.lang.Object#equals(java.lang.Object)
+ 	 */
+ 	@Override
+ 	public boolean equals(Object obj) {
+ 	    if (this == obj) {
+ 	        return true;
+ 	    }
+ 	    if (obj == null) {
+ 	        return false;
+ 	    }
+ 	    if (!(obj instanceof Builder)) {
+ 	        return false;
+ 	    }
+ 	    Builder other = (Builder) obj;
+ 	    if (annotations == null) {
+ 	        if (other.annotations != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!annotations.equals(other.annotations)) {
+ 	        return false;
+ 	    }
+ 	    if (code == null) {
+ 	        if (other.code != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!code.equals(other.code)) {
+ 	        return false;
+ 	    }
+ 	    if (defaultValue == null) {
+ 	        if (other.defaultValue != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!defaultValue.equals(other.defaultValue)) {
+ 	        return false;
+ 	    }
+ 	    if (exceptions == null) {
+ 	        if (other.exceptions != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!exceptions.equals(other.exceptions)) {
+ 	        return false;
+ 	    }
+ 	    if (javadoc == null) {
+ 	        if (other.javadoc != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!javadoc.equals(other.javadoc)) {
+ 	        return false;
+ 	    }
+ 	    if (modifiers == null) {
+ 	        if (other.modifiers != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!modifiers.equals(other.modifiers)) {
+ 	        return false;
+ 	    }
+ 	    if (name == null) {
+ 	        if (other.name != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!name.equals(other.name)) {
+ 	        return false;
+ 	    }
+ 	    if (parameters == null) {
+ 	        if (other.parameters != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!parameters.equals(other.parameters)) {
+ 	        return false;
+ 	    }
+ 	    if (returnType == null) {
+ 	        if (other.returnType != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!returnType.equals(other.returnType)) {
+ 	        return false;
+ 	    }
+ 	    if (typeVariables == null) {
+ 	        if (other.typeVariables != null) {
+ 	            return false;
+ 	        }
+ 	    } else if (!typeVariables.equals(other.typeVariables)) {
+ 	        return false;
+ 	    }
+ 	    if (varargs != other.varargs) {
+ 	        return false;
+ 	    }
+ 	    return true;
+ 	}
+ 	
+ 	@Override
+ 	public String toString() {
+ 	    StringBuilder sb = new StringBuilder();
+ 	    sb.append("name:").append(this.name)
+ 	    .append(',')
+ 	    .append("returnType:").append(returnType)
+ 	    .append(',')
+ 	    .append("nAnnotations:").append(annotations.size())
+ 	    .append(',')
+ 	    .append("nModifiers:").append(modifiers.size())
+ 	    .append(',')
+ 	    .append("nTypeVariables:").append(typeVariables.size())
+ 	    .append(',')
+ 	    .append("nParameters:").append(parameters.size())
+ 	    .append(',')
+ 	    .append("nExceptions:").append(exceptions.size());
+ 	    return sb.toString();
+ 	}
 
     public Builder setName(String name) {
       checkNotNull(name, "name == null");
@@ -530,9 +676,15 @@ public final class MethodSpec {
       code.addStatement(codeBlock);
       return this;
     }
-
+    
     public MethodSpec build() {
+      LOGGER.debug("build using {}", this);
       return new MethodSpec(this);
+    }
+     	
+    @Override
+    public String getName() {
+        return name;
     }
   }
 }

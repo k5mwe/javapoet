@@ -58,7 +58,7 @@ public final class TypeSpecTest {
   }
 
   @Test public void basic() throws Exception {
-    TypeSpec taco = TypeSpec.classBuilder("Taco")
+    TypeSpec taco1 = TypeSpec.classBuilder("Taco")
         .addMethod(MethodSpec.methodBuilder("toString")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -66,7 +66,7 @@ public final class TypeSpecTest {
             .addCode("return $S;\n", "taco")
             .build())
         .build();
-    assertThat(toString(taco)).isEqualTo(""
+    assertThat(toString(taco1)).isEqualTo(""
         + "package com.squareup.tacos;\n"
         + "\n"
         + "import java.lang.Override;\n"
@@ -78,7 +78,37 @@ public final class TypeSpecTest {
         + "    return \"taco\";\n"
         + "  }\n"
         + "}\n");
-    assertEquals(472949424, taco.hashCode()); // update expected number if source changes
+    TypeSpec taco2 = TypeSpec.classBuilder("Taco")
+            .addMethod(MethodSpec.methodBuilder("toString")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .returns(String.class)
+                .addCode("return $S;\n", "taco")
+                .build())
+            .build();
+    assertEquals(taco1.hashCode(), taco2.hashCode());
+    TypeSpec burrito = TypeSpec.classBuilder("Burrito")
+            .addMethod(MethodSpec.methodBuilder("toString")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .returns(String.class)
+                .addCode("return $S;\n", "burrito")
+                .build())
+            .build();
+        assertThat(toString(burrito)).isEqualTo(""
+            + "package com.squareup.tacos;\n"
+            + "\n"
+            + "import java.lang.Override;\n"
+            + "import java.lang.String;\n"
+            + "\n"
+            + "class Burrito {\n"
+            + "  @Override\n"
+            + "  public final String toString() {\n"
+            + "    return \"burrito\";\n"
+            + "  }\n"
+            + "}\n");
+        assertThat(!taco1.equals(burrito));
+        assertThat(burrito.hashCode() != taco1.hashCode()); // almost always true 
   }
 
   @Test public void interestingTypes() throws Exception {
@@ -2524,7 +2554,7 @@ public final class TypeSpecTest {
             .addAnnotation(Override.class)
             .addAnnotation(SuppressWarnings.class);
 
-    builder.annotations.remove(1);
+    builder.annotations.remove(AnnotationSpec.builder(ClassName.get(SuppressWarnings.class)).build());
     assertThat(builder.build().annotations).hasSize(1);
   }
 
@@ -2533,8 +2563,9 @@ public final class TypeSpecTest {
     TypeSpec.Builder builder =
         TypeSpec.classBuilder("Taco").addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
-    builder.modifiers.remove(1);
-    assertThat(builder.build().modifiers).containsExactly(Modifier.PUBLIC);
+    builder.modifiers.remove(Modifier.FINAL);
+    TypeSpec taco = builder.build();
+    assertThat(taco.hasModifier(Modifier.PUBLIC) && !taco.hasModifier(Modifier.FINAL));
   }
 
   @Test
@@ -2555,7 +2586,8 @@ public final class TypeSpecTest {
             .addTypeVariable(TypeVariableName.get("V"));
 
     builder.typeVariables.remove(1);
-    assertThat(builder.build().typeVariables).containsExactly(t);
+    TypeSpec taco = builder.build();
+    assertThat(taco.typeVariables).containsExactly(t);
   }
 
   @Test

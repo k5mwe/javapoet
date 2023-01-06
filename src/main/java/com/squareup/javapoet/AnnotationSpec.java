@@ -41,18 +41,24 @@ import static com.squareup.javapoet.Util.checkArgument;
 import static com.squareup.javapoet.Util.checkNotNull;
 
 /** A generated annotation on a declaration. */
-public final class AnnotationSpec {
-  public static final String VALUE = "value";
-
-  public final TypeName type;
-  public final Map<String, List<CodeBlock>> members;
+public final class AnnotationSpec extends Initializable<AnnotationSpec> {
+  transient public TypeName type;
+  transient public Map<String, List<CodeBlock>> members;
 
   private AnnotationSpec(Builder builder) {
+	initialize(builder); 
+  }
+  
+  @Override
+  public void initialize(Initializer<AnnotationSpec> aBuilder) {
+	Builder builder = (Builder) aBuilder;
     this.type = builder.type;
     this.members = Util.immutableMultimap(builder.members);
+    super.initialize(builder);
   }
 
   void emit(CodeWriter codeWriter, boolean inline) throws IOException {
+	ensureInitialized();
     String whitespace = inline ? "" : "\n";
     String memberSeparator = inline ? ", " : ",\n";
     if (members.isEmpty()) {
@@ -88,6 +94,7 @@ public final class AnnotationSpec {
 
   private void emitAnnotationValues(CodeWriter codeWriter, String whitespace,
       String memberSeparator, List<CodeBlock> values) throws IOException {
+	ensureInitialized();
     if (values.size() == 1) {
       codeWriter.indent(2);
       codeWriter.emit(values.get(0));
@@ -170,16 +177,16 @@ public final class AnnotationSpec {
     return builder;
   }
 
-  @Override public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null) return false;
-    if (getClass() != o.getClass()) return false;
-    return toString().equals(o.toString());
-  }
-
-  @Override public int hashCode() {
-    return toString().hashCode();
-  }
+//  @Override public boolean equals(Object o) {
+//    if (this == o) return true;
+//    if (o == null) return false;
+//    if (getClass() != o.getClass()) return false;
+//    return toString().equals(o.toString());
+//  }
+//
+//  @Override public int hashCode() {
+//    return toString().hashCode();
+//  }
 
   @Override public String toString() {
     StringBuilder out = new StringBuilder();
@@ -192,13 +199,57 @@ public final class AnnotationSpec {
     }
   }
 
-  public static final class Builder {
+  public static final class Builder implements Initializer<AnnotationSpec> {
     private final TypeName type;
 
     public final Map<String, List<CodeBlock>> members = new LinkedHashMap<>();
 
     private Builder(TypeName type) {
       this.type = type;
+    }
+    
+    /* (non-Javadoc)
+ 	 * @see java.lang.Object#hashCode()
+ 	 */
+ 	@Override
+ 	public int hashCode() {
+ 	  final int prime = 31;
+ 	  int result = 1;
+ 	  result = prime * result + ((members == null) ? 0 : members.hashCode());
+ 	  result = prime * result + ((type == null) ? 0 : type.hashCode());
+ 	  return result;
+ 	}
+ 	 
+ 	/* (non-Javadoc)
+ 	 * @see java.lang.Object#equals(java.lang.Object)
+ 	 */
+ 	@Override
+ 	public boolean equals(Object obj) {
+ 	  if (this == obj) {
+ 	    return true;
+ 	  }
+ 	  if (obj == null) {
+ 	      return false;
+ 	  }
+ 	  if (!(obj instanceof Builder)) {
+ 	      return false;
+ 	  }
+ 	  Builder other = (Builder) obj;
+ 	  if (members == null) {
+ 	      if (other.members != null) {
+ 	          return false;
+ 	      }
+ 	  } else if (!members.equals(other.members)) {
+ 	      return false;
+ 	  }
+ 	  if (type == null) {
+ 	      if (other.type != null) {
+ 	          return false;
+ 	      }
+ 	  } else if (!type.equals(other.type)) {
+ 	      return false;
+ 	  }
+ 	  return true;
     }
 
     public Builder addMember(String name, String format, Object... args) {
@@ -245,13 +296,18 @@ public final class AnnotationSpec {
       }
       return new AnnotationSpec(this);
     }
+    
+    @Override
+    public String getName() {
+    	return type.toString();
+    }
   }
 
   /**
    * Annotation value visitor adding members to the given builder instance.
    */
   private static class Visitor extends SimpleAnnotationValueVisitor8<Builder, String> {
-    final Builder builder;
+    transient final Builder builder;
 
     Visitor(Builder builder) {
       super(builder);
