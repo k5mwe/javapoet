@@ -14,13 +14,13 @@ public abstract class Initializable<T> {
 		if (!isInitialized) {
 			try {
 				initialize(initializer);
-//				LOGGER.debug("initialized {}", initializer.getName());
+// 				if (LOGGER.isDebugEnabled()) LOGGER.debug("initialized {}", initializer.getName());
 			} catch (Exception e) {
 				LOGGER.error("exception during initialization: ", e);
 				throw new IllegalStateException(e);
 			}
 		} else {
-//			if (LOGGER.isTraceEnabled()) LOGGER.trace("{} already initialized", initializer.getName());
+//  			if (LOGGER.isTraceEnabled()) LOGGER.trace("{} already initialized", initializer.getName());
 		}
 		return this;
 	}
