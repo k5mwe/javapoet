@@ -88,7 +88,7 @@ public final class MethodSpec extends Initializable<MethodSpec> {
 
   private boolean lastParameterIsArray(List<ParameterSpec> parameters) {
     return !parameters.isEmpty()
-        && TypeName.asArray((parameters.get(parameters.size() - 1).type)) != null;
+        && TypeName.asArray((parameters.get(parameters.size() - 1).getType())) != null;
   }
 
   void emit(CodeWriter codeWriter, String enclosingName, Set<Modifier> implicitModifiers)
